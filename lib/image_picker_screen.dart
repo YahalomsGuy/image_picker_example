@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart' as pck;
 import 'dart:io';
 import 'package:image/image.dart' as image;
 import 'package:image_picker_example/cam_page.dart';
+import 'package:image_picker_example/cam_red_page.dart';
 
 class ImagePickerScreen extends StatefulWidget {
   static const routeName = "/image_picker_page";
@@ -59,6 +60,20 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              const SizedBox(width: 60),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, CamRedPage.routeName);
+                },
+                label: const Text('Take Red Photo'),
+                icon: const Icon(Icons.camera_alt_outlined),
+              ),
+            ],
+          ),
           if (importedImage != null)
             Expanded(
               child: Column(
@@ -98,11 +113,12 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
       Uint8List dImgList = decodedImage.getBytes();
 
       List<Pixel> myList = [];
-      Pixel thePixel = Pixel(R: 0, G: 0, B: 0, A: 0);
+      Pixel thePixel = Pixel(X: 0, Y: 0, R: 0, G: 0, B: 0, A: 0);
       int i = 0;
 
       while (i < dImgList.length - 4) {
         thePixel = Pixel(
+          X: 0, Y: 0,
           R: dImgList[i],
           G: dImgList[i + 1],
           B: dImgList[i + 2],
@@ -153,12 +169,16 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
 
 class Pixel {
   Pixel({
+    required this.X,
+    required this.Y,
     required this.R,
     required this.G,
     required this.B,
     required this.A,
   });
 
+  int X;
+  int Y;
   int R;
   int G;
   int B;

@@ -111,11 +111,13 @@ class _CamPageState extends State<CamPage> {
       Uint8List dImgList = decodedImage.getBytes();
 
       List<Pixel> myList = [];
-      Pixel thePixel = Pixel(R: 0, G: 0, B: 0, A: 0);
+      Pixel thePixel = Pixel(X: 0, Y: 0, R: 0, G: 0, B: 0, A: 0);
       int i = 0;
 
       while (i < dImgList.length - 4) {
         thePixel = Pixel(
+          X: (i ~/ 3) ~/ 240,
+          Y: (i % 720) ~/ 3,
           R: dImgList[i],
           G: dImgList[i + 1],
           B: dImgList[i + 2],
@@ -124,20 +126,27 @@ class _CamPageState extends State<CamPage> {
         myList.add(thePixel);
         i = i + 3;
       }
+      int roiXStart = 100;
+      int roiXEnd = 200;
+      int roiYStart = 100;
+      int roiYEnd = 200;
+
       print(myList.length);
       List<Pixel> cutList = [];
-      for (int pixelCol = 50; pixelCol < 200; pixelCol++) {
-        for (int pixelRow = 50; pixelRow < 280; pixelRow++) {
-          cutList.add(myList[pixelRow + pixelCol * pixelsPerRow]);
-        }
+      for (Pixel pixel in myList) {
+        if (pixel.X > roiXStart &&
+            pixel.X < roiXEnd &&
+            pixel.Y > roiYStart &&
+            pixel.Y < roiYEnd) {}
       }
+
       print(cutList.length);
       int cnsc = 0;
       for (Pixel px in cutList) {
         if (px.R < 50) {
           cnsc++;
           print(
-              "Pixel: ${cutList.indexOf(px)} - R: ${px.R}, G: ${px.G}, B: ${px.B} : Consecutives: $cnsc");
+              "Pixel: ${cutList.indexOf(px)} - X: ${px.X}, Y: ${px.Y}, R: ${px.R}, G: ${px.G}, B: ${px.B} : Consecutive: $cnsc");
         } else {
           if (cnsc > 3) {
             print("Pixel: ${cutList.indexOf(px)}");

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker_example/cam_page.dart';
+import 'package:image_picker_example/cam_red_page.dart';
 import 'package:image_picker_example/image_picker_screen.dart';
 
 void main() {
@@ -22,6 +23,7 @@ class MyApp extends StatelessWidget {
       routes: {
         ImagePickerScreen.routeName: (context) => const ImagePickerScreen(),
         CamPage.routeName: (context) => const CamPage(),
+        CamRedPage.routeName: (context) => const CamRedPage(),
       },
     );
   }

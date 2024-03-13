@@ -39,6 +39,7 @@ dependencies:
   image: ^4.1.7
   image_cropper: ^1.5.1
   camera: ^0.10.5+9
+  screen_brightness: ^1.0.0
 
 dev_dependencies:
   flutter_test:
