@@ -2,10 +2,10 @@ import 'dart:ui';
 
 enum EnumCameraDescription { front, back }
 
-double roiLeft = 90;
-double roiWidth = 60;
-double roiTop = 120;
-double roiHeight = 60;
+double roiLeft = 50;
+double roiWidth = 50;
+double roiTop = 50;
+double roiHeight = 50;
 late Size size;
 late Canvas canvas;
 bool chkRed = false;

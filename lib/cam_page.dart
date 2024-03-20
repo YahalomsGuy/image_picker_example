@@ -1,10 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/cupertino.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image/image.dart' as im;
 
 import 'image_picker_screen.dart';
@@ -41,7 +39,7 @@ class _CamPageState extends State<CamPage> {
                     children: [
                       SizedBox(
                           height: MediaQuery.of(context).size.height * 0.3),
-                      Text(
+                      const Text(
                         "align QR with frame",
                         style: TextStyle(color: Colors.white, fontSize: 24),
                       ),
@@ -49,7 +47,7 @@ class _CamPageState extends State<CamPage> {
                           height: MediaQuery.of(context).size.height * 0.38),
                       InkWell(
                         onTap: () => onTakePic(),
-                        child: CircleAvatar(
+                        child: const CircleAvatar(
                           backgroundColor: Colors.white,
                           radius: 30,
                         ),
@@ -59,7 +57,7 @@ class _CamPageState extends State<CamPage> {
                 ],
               );
             } else {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             }
@@ -87,7 +85,7 @@ class _CamPageState extends State<CamPage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text("The QR"),
+              title: const Text("The QR"),
               content: CircleAvatar(
                 radius: 60,
                 backgroundImage: Image.file(File(xFile.path)).image,

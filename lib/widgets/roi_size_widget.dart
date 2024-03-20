@@ -27,8 +27,8 @@ class _RoiSizeWidgetState extends State<RoiSizeWidget> {
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    heightRatio = size.height / 320;
-    widthRatio = size.width / 240;
+    heightRatio = 1; //size.height / 320;
+    widthRatio = 1; // size.width / 240;
     return Stack(
       children: [
         Container(

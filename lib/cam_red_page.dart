@@ -1,6 +1,5 @@
-import 'dart:ui';
+import 'dart:ffi';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker_example/base/glob.dart';
 import 'package:image_picker_example/widgets/roi_size_widget.dart';
@@ -37,8 +36,7 @@ class _CamRedPageState extends State<CamRedPage> {
                 return Stack(
                   alignment: Alignment.topLeft,
                   children: [
-                    //CameraPreview(camCtrl),
-                    //Image.asset('assets/images/redOverlay.png', fit: BoxFit.fill),
+                    CameraPreview(camCtrl),
                     const RoiSizeWidget(),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
@@ -59,10 +57,11 @@ class _CamRedPageState extends State<CamRedPage> {
                                 ),
                               ),
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 20),
                                 color: chkRed && chkGreen
-                                    ? Color(0x88000000)
-                                    : Color(0x88FFFFFF),
+                                    ? const Color(0x88000000)
+                                    : const Color(0x88FFFFFF),
                                 width: MediaQuery.of(context).size.width,
                                 height: 50,
                                 child: Row(
@@ -127,7 +126,7 @@ class _CamRedPageState extends State<CamRedPage> {
       await ScreenBrightness().setScreenBrightness(1);
       var cameras = await availableCameras();
       camCtrl = CameraController(
-          cameras[EnumCameraDescription.back.index], ResolutionPreset.low,
+          cameras[EnumCameraDescription.front.index], ResolutionPreset.low,
           imageFormatGroup: ImageFormatGroup.yuv420);
       await camCtrl.initialize();
     } catch (e) {
@@ -146,7 +145,7 @@ class _CamRedPageState extends State<CamRedPage> {
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text("The QR"),
+              title: const Text("The QR"),
               content: Container(
                 height: 200,
                 width: 200,
@@ -172,7 +171,7 @@ class _CamRedPageState extends State<CamRedPage> {
       int pixelsPerRow = decodedImage!.width;
       Uint8List dImgList = decodedImage.getBytes();
 
-      List<Pixel> myList = [];
+      List<Pixel> imageList = [];
       Pixel thePixel = Pixel(X: 0, Y: 0, R: 0, G: 0, B: 0, A: 0);
       int i = 0;
 
@@ -185,47 +184,82 @@ class _CamRedPageState extends State<CamRedPage> {
           B: dImgList[i + 2],
           A: 0, //dImgList[i + 3],
         );
-        myList.add(thePixel);
+        imageList.add(thePixel);
         i = i + 3;
       }
 
-      print(myList.length);
-      List<Pixel> cutList = [];
-      for (Pixel pixel in myList) {
+      print("Size of Data in the image: ${imageList.length}");
+
+      List<Pixel> roiList = [];
+      for (Pixel pixel in imageList) {
         if (pixel.X >= roiLeft &&
             pixel.X < roiLeft + roiWidth &&
             pixel.Y >= roiTop &&
             pixel.Y < roiTop + roiHeight) {
+          // print(
+          //     "Index: ${imageList.indexOf(pixel)} Y: ${pixel.Y} , X: ${pixel.X} ");
+
           pixel.X = pixel.X - roiLeft.toInt();
           pixel.Y = pixel.Y - roiTop.toInt();
-          cutList.add(pixel);
+          roiList.add(pixel);
         }
       }
+      print(
+          "Size of the image: ${roiWidth.toInt() + 1} on ${roiHeight.toInt() + 1}");
 
-      print(cutList.length);
-      int curr = 1000;
-      print(
-          "1000 - R: ${cutList[curr].R}, G: ${cutList[curr].G}, B: ${cutList[curr].B}");
-      curr = 2000;
-      print(
-          "3000 - R: ${cutList[curr].R}, G: ${cutList[curr].G}, B: ${cutList[curr].B}");
-      curr = 3000;
-      print(
-          "3000 - R: ${cutList[curr].R}, G: ${cutList[curr].G}, B: ${cutList[curr].B}");
-
-      int cnsc = 0;
-      for (Pixel px in cutList) {
-        if (px.R < 50) {
-          cnsc++;
-          print(
-              "Pixel: ${cutList.indexOf(px)} - X: ${px.X}, Y: ${px.Y}, R: ${px.R}, G: ${px.G}, B: ${px.B} : Consecutive: $cnsc");
-        } else {
-          if (cnsc > 3) {
-            print("Pixel: ${cutList.indexOf(px)}");
-            cnsc = 0;
-          }
-        }
+      /// Iterate roiList
+      int someNum = 0;
+      for (Pixel pix in roiList) {
+        //if (someNum % 1 == 0) {
+        print(
+            "X: ${pix.X}, y: ${pix.Y} - R: ${pix.R}, G ${pix.G}, B: ${pix.B}");
+        //}
+        someNum++;
       }
+
+      /// Find Fist Black
+      //for (Pixel pixelSearch in roiList) {
+      // if (pixelSearch.R < 50) {
+      //   print("First Black Pixel: ${roiList.indexOf(pixelSearch)}");
+      //   return;
+      // }
+      //}
+
+      /// The random locations
+      // print(
+      //     "Size of the image: ${roiWidth.toInt() + 1} on ${roiHeight.toInt() + 1}");
+      // print("Size of Data in the selected ROI: ${cutList.length}");
+      //
+      // List<Curr> currs = [
+      //   Curr(name: "Center", value: cutList.length ~/ 2),
+      //   Curr(name: "20", value: 20),
+      //   Curr(name: "50", value: 50),
+      //   Curr(name: "100", value: 100),
+      //   Curr(name: "200", value: 200),
+      //   Curr(name: "1500", value: 1500),
+      // ];
+      // for (Curr curr in currs) {
+      //   if (curr.value <= cutList.length) {
+      //     print(
+      //         "${curr.name} - R: ${cutList[curr.value].R}, G: ${cutList[curr.value].G}, B: ${cutList[curr.value].B}");
+      //   } else {
+      //     print("${curr.name} is out of range");
+      //   }
+      // }
+      /// The random locations - End
+      // int cnsc = 0;
+      // for (Pixel px in cutList) {
+      //   if (px.R < 50) {
+      //     cnsc++;
+      //     print(
+      //         "Pixel: ${cutList.indexOf(px)} - X: ${px.X}, Y: ${px.Y}, R: ${px.R}, G: ${px.G}, B: ${px.B} : Consecutive: $cnsc");
+      //   } else {
+      //     if (cnsc > 3) {
+      //       print("Pixel: ${cutList.indexOf(px)}");
+      //       cnsc = 0;
+      //     }
+      //   }
+      // }
       print("done");
       // for (Pixel pixel in myList) {
       //   if (pixel.R == 0 && pixel.G == 0 && pixel.B == 0 && lastWasBlack) {
@@ -251,4 +285,11 @@ class _CamRedPageState extends State<CamRedPage> {
       debugPrint("ERROR: $e");
     }
   }
+}
+
+class Curr {
+  String name;
+  int value;
+
+  Curr({required this.name, required this.value});
 }

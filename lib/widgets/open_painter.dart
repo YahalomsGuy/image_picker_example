@@ -19,8 +19,8 @@ class OpenPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    double widthRatio = screenSize.width / 240;
-    double heightRatio = screenSize.height / 320;
+    double widthRatio = 1; //screenSize.width; // / 240;
+    double heightRatio = 1; //screenSize.height; // / 320;
 
     var paintRect = Paint()
       ..color = Colors.green
