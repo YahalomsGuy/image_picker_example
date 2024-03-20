@@ -1,14 +1,16 @@
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker_example/base/glob.dart';
+import 'package:image_picker_example/widgets/roi_size_widget.dart';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'image_picker_screen.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter/cupertino.dart';
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image/image.dart' as im;
 import 'package:screen_brightness/screen_brightness.dart';
-
-import 'image_picker_screen.dart';
 
 class CamRedPage extends StatefulWidget {
   const CamRedPage({super.key});
@@ -20,21 +22,10 @@ class CamRedPage extends StatefulWidget {
 class _CamRedPageState extends State<CamRedPage> {
   late CameraController camCtrl;
 
-  bool chkRed = false;
-  bool chkGreen = false;
-  bool chkBlue = false;
-  int roiLeft = 90;
-  int roiWidth = 60;
-  int roiTop = 220;
-  int roiHeight = 60;
-  late Size size;
-  //Canvas canvas = Canvas();
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Color.fromARGB(
-          0, chkRed ? 255 : 0, chkGreen ? 255 : 0, chkBlue ? 255 : 0),
       body: Container(
         width: MediaQuery.of(context).size.width,
         color: Color.fromARGB(
@@ -44,72 +35,46 @@ class _CamRedPageState extends State<CamRedPage> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
                 return Stack(
-                  alignment: Alignment.center,
+                  alignment: Alignment.topLeft,
                   children: [
                     //CameraPreview(camCtrl),
                     //Image.asset('assets/images/redOverlay.png', fit: BoxFit.fill),
+                    const RoiSizeWidget(),
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         // mainAxisSize: MainAxisSize.max,
                         children: [
+                          const SizedBox(height: 0),
                           Column(
                             children: [
-                              Text(
-                                "Align.......",
-                                style: TextStyle(
-                                    color: Colors.black, fontSize: 24),
+                              InkWell(
+                                onTap: () => onTakePic(),
+                                child: CircleAvatar(
+                                  backgroundColor: chkRed && chkGreen
+                                      ? Colors.black
+                                      : Colors.white,
+                                  radius: 30,
+                                ),
                               ),
-                            ],
-                          ),
-                          Column(
-                            children: [
                               Container(
-                                color: chkRed && chkGreen && chkBlue
-                                    ? Colors.black
-                                    : Colors.white,
-                                width: 250,
+                                padding: EdgeInsets.symmetric(horizontal: 20),
+                                color: chkRed && chkGreen
+                                    ? Color(0x88000000)
+                                    : Color(0x88FFFFFF),
+                                width: MediaQuery.of(context).size.width,
                                 height: 50,
                                 child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.max,
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text("R"),
-                                    Checkbox(
-                                        value: chkRed,
-                                        onChanged: (checked) {
-                                          print(checked);
-                                          chkRed = checked!;
-                                          setState(() {});
-                                        }),
-                                    Text("G"),
-                                    Checkbox(
-                                        value: chkGreen,
-                                        onChanged: (checked) {
-                                          print(checked);
-                                          chkGreen = checked!;
-                                          setState(() {});
-                                        }),
-                                    Text("B"),
-                                    Checkbox(
-                                        value: chkBlue,
-                                        onChanged: (checked) {
-                                          print(checked);
-                                          chkBlue = checked!;
-                                          setState(() {});
-                                        }),
+                                    buildCheckbox("Red: "),
+                                    buildCheckbox("Green: "),
+                                    buildCheckbox("Blue: "),
                                   ],
-                                ),
-                              ),
-                              InkWell(
-                                onTap: () => onTakePic(),
-                                child: CircleAvatar(
-                                  backgroundColor: chkRed && chkGreen && chkBlue
-                                      ? Colors.black
-                                      : Colors.white,
-                                  radius: 30,
                                 ),
                               ),
                             ],
@@ -117,16 +82,43 @@ class _CamRedPageState extends State<CamRedPage> {
                         ],
                       ),
                     ),
-                    // Canvas().drawRect(rect, paint)
                   ],
                 );
               } else {
-                return Center(
+                return const Center(
                   child: CircularProgressIndicator(),
                 );
               }
             }),
       ),
+    );
+  }
+
+  Widget buildCheckbox(String text) {
+    return Row(
+      children: [
+        Text(text),
+        Checkbox(
+            value: text == "Blue: "
+                ? chkBlue
+                : text == "Red: "
+                    ? chkRed
+                    : chkGreen,
+            onChanged: (checked) {
+              switch (text) {
+                case "Blue: ":
+                  chkBlue = checked!;
+                  break;
+                case "Green: ":
+                  chkGreen = checked!;
+                  break;
+                case "Red: ":
+                  chkRed = checked!;
+                  break;
+              }
+              setState(() {});
+            }),
+      ],
     );
   }
 
@@ -196,10 +188,6 @@ class _CamRedPageState extends State<CamRedPage> {
         myList.add(thePixel);
         i = i + 3;
       }
-      int roiLeft = 90;
-      int roiWidth = 60;
-      int roiTop = 220;
-      int roiHeight = 60;
 
       print(myList.length);
       List<Pixel> cutList = [];
@@ -208,8 +196,8 @@ class _CamRedPageState extends State<CamRedPage> {
             pixel.X < roiLeft + roiWidth &&
             pixel.Y >= roiTop &&
             pixel.Y < roiTop + roiHeight) {
-          pixel.X = pixel.X - roiLeft;
-          pixel.Y = pixel.Y - roiTop;
+          pixel.X = pixel.X - roiLeft.toInt();
+          pixel.Y = pixel.Y - roiTop.toInt();
           cutList.add(pixel);
         }
       }
@@ -264,5 +252,3 @@ class _CamRedPageState extends State<CamRedPage> {
     }
   }
 }
-
-enum EnumCameraDescription { front, back }
