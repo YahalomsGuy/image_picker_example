@@ -1,5 +1,6 @@
-import 'dart:ffi';
+// import 'dart:ffi';
 
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker_example/base/glob.dart';
 import 'package:image_picker_example/widgets/roi_size_widget.dart';
@@ -7,7 +8,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'image_picker_screen.dart';
-import 'package:camera/camera.dart';
 import 'package:image/image.dart' as im;
 import 'package:screen_brightness/screen_brightness.dart';
 
@@ -20,75 +20,87 @@ class CamRedPage extends StatefulWidget {
 
 class _CamRedPageState extends State<CamRedPage> {
   late CameraController camCtrl;
+  late Size size;
+  Uint8List theImageBytes = Uint8List(0);
 
   @override
   Widget build(BuildContext context) {
     size = MediaQuery.of(context).size;
-    return Scaffold(
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        color: Color.fromARGB(
-            255, chkRed ? 255 : 0, chkGreen ? 255 : 0, chkBlue ? 255 : 0),
-        child: FutureBuilder(
-            future: initCamera(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                return Stack(
-                  alignment: Alignment.topLeft,
-                  children: [
-                    CameraPreview(camCtrl),
-                    const RoiSizeWidget(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        // mainAxisSize: MainAxisSize.max,
-                        children: [
-                          const SizedBox(height: 0),
-                          Column(
-                            children: [
-                              InkWell(
-                                onTap: () => onTakePic(),
-                                child: CircleAvatar(
-                                  backgroundColor: chkRed && chkGreen
-                                      ? Colors.black
-                                      : Colors.white,
-                                  radius: 30,
+    print("Screen Size: Width - ${size.width}, Height - ${size.height}");
+    return SafeArea(
+      child: Scaffold(
+        body: Container(
+          width: size.width,
+          color: Color.fromARGB(
+              255, chkRed ? 255 : 0, chkGreen ? 255 : 0, chkBlue ? 255 : 0),
+          child: FutureBuilder(
+              future: initCamera(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return Stack(
+                    alignment: Alignment.topLeft,
+                    children: [
+                      Container(
+                          width: size.width,
+                          height: size.width * 1.5,
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: Colors.greenAccent, width: 1)),
+                          child: CameraPreview(camCtrl)),
+                      const RoiSizeWidget(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          // mainAxisSize: MainAxisSize.max,
+                          children: [
+                            const SizedBox(height: 0),
+                            Column(
+                              children: [
+                                InkWell(
+                                  onTap: () => onTakePic(),
+                                  child: CircleAvatar(
+                                    backgroundColor: chkRed && chkGreen
+                                        ? Colors.black
+                                        : Colors.white,
+                                    radius: 30,
+                                  ),
                                 ),
-                              ),
-                              Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                color: chkRed && chkGreen
-                                    ? const Color(0x88000000)
-                                    : const Color(0x88FFFFFF),
-                                width: MediaQuery.of(context).size.width,
-                                height: 50,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    buildCheckbox("Red: "),
-                                    buildCheckbox("Green: "),
-                                    buildCheckbox("Blue: "),
-                                  ],
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20),
+                                  color: chkRed && chkGreen
+                                      ? const Color(0x88000000)
+                                      : const Color(0x88FFFFFF),
+                                  width: MediaQuery.of(context).size.width,
+                                  height: 50,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    mainAxisSize: MainAxisSize.max,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      buildCheckbox("Red: "),
+                                      buildCheckbox("Green: "),
+                                      buildCheckbox("Blue: "),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
-                          )
-                        ],
+                              ],
+                            )
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-            }),
+                    ],
+                  );
+                } else {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              }),
+        ),
       ),
     );
   }
@@ -123,10 +135,10 @@ class _CamRedPageState extends State<CamRedPage> {
 
   initCamera() async {
     try {
+      List<CameraDescription> cameras = await availableCameras();
       await ScreenBrightness().setScreenBrightness(1);
-      var cameras = await availableCameras();
       camCtrl = CameraController(
-          cameras[EnumCameraDescription.front.index], ResolutionPreset.low,
+          cameras[EnumCameraDescription.front.index], ResolutionPreset.medium,
           imageFormatGroup: ImageFormatGroup.yuv420);
       await camCtrl.initialize();
     } catch (e) {
@@ -137,11 +149,18 @@ class _CamRedPageState extends State<CamRedPage> {
   onTakePic() async {
     camCtrl.resolutionPreset;
     //camCtrl.setFlashMode(FlashMode.always);
-    await camCtrl.takePicture().then((XFile? xFile) {
+    await camCtrl.takePicture().then((XFile? xFile) async {
       if (mounted) {
         if (xFile != null) {
           print(xFile.path);
-          processImg03(xFile, "jpg");
+          await processImg03(xFile, "jpg");
+          im.Image image = im.Image.fromBytes(
+              width: 200, height: 200, bytes: theImageBytes.buffer);
+          String newFilePath =
+              "${xFile.path.substring(0, xFile.path.length - 6)}44.jpg";
+          await XFile.fromData(theImageBytes).saveTo(newFilePath);
+
+          //print(newFile.path);
           showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -150,8 +169,11 @@ class _CamRedPageState extends State<CamRedPage> {
                 height: 200,
                 width: 200,
                 decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: Image.file(File(xFile.path)).image)),
+                  image: DecorationImage(
+                    image: Image.file(File(newFilePath)).image,
+                  ),
+                ),
+                //image: Image.file(File(xFile.path)).image)),
               ),
             ),
           );
@@ -164,9 +186,9 @@ class _CamRedPageState extends State<CamRedPage> {
   processImg03(XFile? img, String pngJpg) async {
     try {
       Uint8List imageBytes = await img?.readAsBytes() as Uint8List;
-
       var decoder = pngJpg == "png" ? im.PngDecoder() : im.JpegDecoder();
       im.Image? decodedImage = decoder.decode(imageBytes);
+
       print(decodedImage);
       int pixelsPerRow = decodedImage!.width;
       Uint8List dImgList = decodedImage.getBytes();
@@ -177,8 +199,8 @@ class _CamRedPageState extends State<CamRedPage> {
 
       while (i < dImgList.length - 4) {
         thePixel = Pixel(
-          X: (i % 720) ~/ 3,
-          Y: (i ~/ 3) ~/ 240,
+          X: (i % (pixelsPerRow * 3)) ~/ 3,
+          Y: (i ~/ 3) ~/ pixelsPerRow,
           R: dImgList[i],
           G: dImgList[i + 1],
           B: dImgList[i + 2],
@@ -190,6 +212,7 @@ class _CamRedPageState extends State<CamRedPage> {
 
       print("Size of Data in the image: ${imageList.length}");
 
+      ///Cut ROI from the full image
       List<Pixel> roiList = [];
       for (Pixel pixel in imageList) {
         if (pixel.X >= roiLeft &&
@@ -209,21 +232,43 @@ class _CamRedPageState extends State<CamRedPage> {
 
       /// Iterate roiList
       int someNum = 0;
-      for (Pixel pix in roiList) {
-        //if (someNum % 1 == 0) {
-        print(
-            "X: ${pix.X}, y: ${pix.Y} - R: ${pix.R}, G ${pix.G}, B: ${pix.B}");
-        //}
-        someNum++;
+      // for (Pixel pix in roiList) {
+      //   //if (someNum % 1 == 0) {
+      //   print(
+      //       "X: ${pix.X}, y: ${pix.Y} - R: ${pix.R}, G ${pix.G}, B: ${pix.B}");
+      //   //}
+      //   someNum++;
+      // }
+
+      /// Find Blacks
+      for (Pixel pixelSearch in roiList) {
+        if (pixelSearch.R < 50) {
+          print(
+              "Color - X: ${pixelSearch.X}, Y: ${pixelSearch.Y}, R: ${pixelSearch.R} , G: ${pixelSearch.G} , B: ${pixelSearch.B}");
+          //return;
+        }
       }
 
-      /// Find Fist Black
-      //for (Pixel pixelSearch in roiList) {
-      // if (pixelSearch.R < 50) {
-      //   print("First Black Pixel: ${roiList.indexOf(pixelSearch)}");
-      //   return;
-      // }
-      //}
+      /// rebuild Image from ROI bytes
+      List<int> allBytes = [];
+
+      for (Pixel p in roiList) {
+        allBytes.add(p.R);
+        allBytes.add(p.G);
+        allBytes.add(p.B);
+      }
+
+      theImageBytes = Uint8List.fromList(allBytes);
+
+      /// find Magentas
+      for (Pixel pixelSearch in roiList) {
+        //if (pixelSearch.R > 150 && pixelSearch.G < 100 && pixelSearch.B > 150) {
+        if ((pixelSearch.G - pixelSearch.R).abs() > 40) {
+          print(
+              "Pink - X: ${pixelSearch.X}, Y: ${pixelSearch.Y}, R: ${pixelSearch.R} , G: ${pixelSearch.G} , B: ${pixelSearch.B}");
+          //return;
+        }
+      }
 
       /// The random locations
       // print(

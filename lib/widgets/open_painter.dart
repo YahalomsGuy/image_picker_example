@@ -19,9 +19,7 @@ class OpenPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    double widthRatio = 1; //screenSize.width; // / 240;
-    double heightRatio = 1; //screenSize.height; // / 320;
-
+    double ratio = screenSize.width / 480; // / 240;
     var paintRect = Paint()
       ..color = Colors.green
       ..style = PaintingStyle.stroke
@@ -31,18 +29,15 @@ class OpenPainter extends CustomPainter {
       ..style = PaintingStyle.fill
       ..strokeWidth = 6;
     List<Offset> points = [
-      Offset((left * widthRatio).toDouble(), (top * heightRatio).toDouble()),
-      Offset(((left + width) * widthRatio).toDouble(),
-          (top * heightRatio).toDouble()),
-      Offset((left * widthRatio).toDouble(),
-          ((top + height) * heightRatio).toDouble()),
-      Offset(((left + width) * widthRatio).toDouble(),
-          ((top + height) * heightRatio).toDouble()),
+      Offset((left * ratio).toDouble(), (top * ratio).toDouble()),
+      Offset(((left + width) * ratio).toDouble(), (top * ratio).toDouble()),
+      Offset((left * ratio).toDouble(), ((top + height) * ratio).toDouble()),
+      Offset(((left + width) * ratio).toDouble(),
+          ((top + height) * ratio).toDouble()),
     ];
 
     canvas.drawRect(
-        Offset(left * widthRatio, top * heightRatio) &
-            Size(width * widthRatio, height * heightRatio),
+        Offset(left * ratio, top * ratio) & Size(width * ratio, height * ratio),
         paintRect);
 
     canvas.drawPoints(PointMode.points, points, paintPoints);
