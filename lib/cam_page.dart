@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as im;
+import 'package:image_picker_example/models/pixel.dart';
 
 import 'image_picker_screen.dart';
 
